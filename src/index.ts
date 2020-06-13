@@ -172,6 +172,16 @@ function speedStr(speed: { [type: string]: number | undefined }) {
     return strs.join(', ')
 }
 
+function addSkills(characterId: string, skills: { [skill: string]: string | undefined }) {
+    for (var skill in skills) {
+        var score = skills[skill];
+        if (skills.hasOwnProperty(skill) && score !== undefined) {
+            createAttr(characterId, "npc_" + skill, score);
+            createAttr(characterId, "npc_" + skill + "_base", score);
+        }
+    }
+}
+
 function sizeStr(size: MonsterSize): string {
     switch (size) {
         case 'T': return 'Tiny'
@@ -199,7 +209,7 @@ function newMonster(m: Monster) {
     createAttr(c.id, 'npc_type', `${sizeStr(m.size)} ${m.type.type}`)
     createAttr(c.id, 'npc_ac', max(...m.ac))
     createAttr(c.id, 'npc_speed', speedStr(m.speed))
-
+    addSkills(c.id, m.skill)
 }
 
 newMonster(monsters[0])

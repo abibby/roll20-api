@@ -20,5 +20,10 @@
   "homepage": "https://github.com/abibby/roll20-api#readme",
   "dependencies": {
     "typescript": "^3.9.5"
+  },
+  "devDependencies": {
+    "ts-loader": "^7.0.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
   }
 }
