@@ -1,7 +1,9 @@
+// https://wiki.roll20.net/API:Objects#Character
+
 declare namespace Roll20 {
     interface Object {
         /** A unique ID for this object. Globally unique across all objects in this game. Read-only. */
-        _id: unknown
+        id: string
 
         /**
          * Note: currently you can delete 'graphic', 'text', 'path',
@@ -69,18 +71,41 @@ declare namespace Roll20 {
         readonly _defaulttoken: string
     }
 
-    interface TypeMap {
-        "character": Character
+    interface Attribute extends Object {
+        /** 
+         * Can be used to identify the object type or search for the object. Read-only.
+         */
+        readonly _type: 'attribute'
+
+        /**
+         * ID of the character this attribute belongs to. Read-only. Mandatory when using `createObj`.
+         */
+        characterid: string
+
+        name: string
+
+        /**
+         * The current value of the attribute can be accessed in chat and macros
+         * with the syntax `@{Character Name|Attribute Name}` or in abilities with
+         * the syntax `@{Attribute Name}`.
+         */
+        current: string
+
+        /**
+         * The max value of the attribute can be accessed in chat and macros
+         * with the syntax `@{Character Name|Attribute Name|max}` or in
+         * abilities with the syntax `@{Attribute Name|max}`.
+         */
+        max: string
     }
 
-    interface EventMap {
-        'add:character': Character
+    interface TypeMap {
+        "character": Character
+        "attribute": Attribute
     }
 }
 
-declare function on<K extends keyof Roll20.EventMap>(event: K, callback: (event: Roll20.EventMap[K]) => void): void;
-
-declare function getObj<K extends keyof Roll20.TypeMap>(type: keyof K)
+declare function getObj<K extends keyof Roll20.TypeMap>(type: keyof K): Roll20.TypeMap[K]
 
 /**
  * The Character Sheets feature affects the usage of the Attributes object type,

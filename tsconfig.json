@@ -1,6 +1,13 @@
 {
     "compilerOptions": {
         "strict": true,
-        "lib": []
-    }
+        "target": "ES5",
+        "lib": [
+            "ES5"
+        ],
+        "outDir": "dist"
+    },
+    "files": [
+        "./index.ts"
+    ]
 }
