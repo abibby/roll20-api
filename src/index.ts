@@ -127,11 +127,15 @@ function createAttr(
     current: string | number,
     max?: string | number
 ) {
+    const maxObj: { max?: string } = {}
+    if (max !== undefined) {
+        maxObj.max = String(max)
+    }
     createObj('attribute', {
         characterid: characterId,
         name: name,
         current: String(current),
-        max: String(max),
+        ...maxObj,
     })
 }
 
