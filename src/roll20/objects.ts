@@ -99,9 +99,42 @@ declare namespace Roll20 {
         max: string
     }
 
+    interface Ability extends Object {
+        /**
+         * Can be used to identify the object type or search for the object.
+         * Read-only.
+         * */
+        readonly _type: 'ability'
+
+        /**
+         * The character this ability belongs to. Read-only. Mandatory when
+         * using createObj. 
+         */
+        characterid: string
+
+        name: string
+
+        /**
+         * The description does not appear in the character sheet interface.
+         * */
+        description: string
+
+        /**
+         * The text of the ability.
+         * */
+        action: string
+
+        /**
+         * Is this ability a token action that should show up when tokens linked
+         * to its parent Character are selected?
+         */
+        istokenaction: boolean
+    }
+
     interface TypeMap {
         "character": Character
         "attribute": Attribute
+        "ability": Ability
     }
 }
 
@@ -158,3 +191,29 @@ declare function getAttrByName(character_id: string, attribute_name: string, val
  * `createObj` will return the new object, so you can continue working with it.
  */
 declare function createObj<K extends keyof Roll20.TypeMap>(type: K, attributes: Partial<Roll20.TypeMap[K]>): Roll20.TypeMap[K]
+
+/**
+ * Pass this function a list of attributes, and it will return all objects that match as an array. Note that this operates on all objects of all types across all pages -- so you probably want to include at least a filter for _type and _pageid if you're working with tabletop objects.
+ * 
+ * ```
+ * var currentPageGraphics = findObjs({                              
+ *   _pageid: Campaign().get("playerpageid"),                              
+ *   _type: "graphic",                          
+ * });
+ * _.each(currentPageGraphics, function(obj) {    
+ *   //Do something with obj, which is in the current page and is a graphic.
+ * });
+ * ```
+ * 
+ * You can also pass in an optional second argument which contains an object with a list of options, including:
+ * 
+ *  - caseInsensitive (true/false): If true, string properties will be compared without regard for the case of the string.
+ * 
+ * ```
+ * var targetTokens = findObjs({
+ *     name: "target"
+ * }, {caseInsensitive: true});
+ * //Returns all tokens with a name of 'target', 'Target', 'TARGET', etc.
+ * ```
+ */
+declare function findObjs(attrs: unknown): unknown

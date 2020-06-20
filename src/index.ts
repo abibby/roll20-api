@@ -2,6 +2,16 @@ import { Monster } from './5etools'
 import { newMonster } from './monster'
 import "./roll20"
 
+let isMocked = false
+try {
+    //@ts-ignore
+    isMocked = typeof process.exit === 'function'
+} catch (e) { }
+if (isMocked) {
+    //@ts-ignore
+    require('mock20')
+}
+
 const monsters: ReadonlyArray<Readonly<Monster>> = [
     {
         "name": "Aarakocra",
@@ -109,3 +119,8 @@ const monsters: ReadonlyArray<Readonly<Monster>> = [
 newMonster(monsters[0])
 
 log('Done')
+
+if (isMocked) {
+    //@ts-ignore
+    MOCK20endOfLastScript()
+}

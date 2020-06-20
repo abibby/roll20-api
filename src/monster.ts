@@ -1,5 +1,15 @@
-import { Monster, HP, MonsterSize } from './5etools'
+import { Monster, HP, MonsterSize, extractTag, render, attackMap } from './5etools'
+import { generateID, withIndex } from './util'
 import "./roll20"
+
+interface Attack {
+    name: string
+    type: string
+    range: string
+    toHit: number
+    damage: string
+    description: string
+}
 
 function floor(num: number): number {
     return num - (num % 1)
@@ -21,17 +31,13 @@ function createAttr(
     characterId: string,
     name: string,
     current: string | number,
-    max?: string | number
+    max: string | number = ''
 ) {
-    const maxObj: { max?: string } = {}
-    if (max !== undefined) {
-        maxObj.max = String(max)
-    }
     createObj('attribute', {
         characterid: characterId,
         name: name,
         current: String(current),
-        ...maxObj,
+        max: String(max),
     })
 }
 
@@ -93,6 +99,30 @@ function sizeStr(size: MonsterSize): string {
     }
 }
 
+function createAttack(characterId: string, index: number, attack: Attack) {
+    const attackID = generateID()
+    createObj('ability', {
+        characterid: characterId,
+        name: `Attack: ${attack.name}`,
+        action: `%{selected|repeating_npcaction_${attackID}_npc_action}`,
+        istokenaction: true,
+    })
+    function createAttackAttr(prop: string, value: string | number | undefined) {
+        if (value === undefined) {
+            return
+        }
+        createAttr(characterId, `repeating_npcaction_$${index}_${prop}`, value)
+    }
+
+    createAttackAttr('name', attack.name)
+    createAttackAttr('description', attack.description)
+    createAttackAttr('attack_flag', 'on')
+    createAttackAttr('attack_type', attackMap[attack.type])
+    createAttackAttr('attack_range', attack.range)
+    createAttackAttr('attack_tohit', attack.toHit)
+    createAttackAttr('attack_damage', attack.damage)
+}
+
 export function newMonster(m: Monster) {
     const c = createObj('character', { name: m.name })
 
@@ -104,11 +134,28 @@ export function newMonster(m: Monster) {
     createAttr(c.id, 'mancer_cancel', 'on')
     createAttr(c.id, 'npc', 1)
     createAttr(c.id, 'npc_options-flag', 'on')
+    createAttr(c.id, 'dtype', 'full')
+    createAttr(c.id, 'wtype', '/w gm')
 
     createAttr(c.id, 'npc_name', m.name)
     createAttr(c.id, 'npc_type', `${sizeStr(m.size)} ${m.type.type}`)
     createAttr(c.id, 'npc_ac', max(...m.ac))
     createAttr(c.id, 'npc_speed', speedStr(m.speed))
     addSkills(c.id, m.skill)
-}
 
+    for (const [i, action] of withIndex(m.action)) {
+        const type = extractTag(action.entries, 'atk')
+        if (type === undefined) {
+            continue
+        }
+        createAttack(c.id, i, {
+            name: action.name,
+            type: type,
+            range: '',
+            toHit: Number(extractTag(action.entries, 'hit')),
+            damage: extractTag(action.entries, 'damage') ?? '',
+            description: render(action.entries)
+        })
+    }
+
+}

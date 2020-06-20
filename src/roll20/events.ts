@@ -1,6 +1,7 @@
 
 declare namespace Roll20 {
     interface EventMap {
+        'ready': void
         'add:character': Character
     }
 }
