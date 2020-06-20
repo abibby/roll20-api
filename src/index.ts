@@ -2,11 +2,7 @@ import { Monster } from './5etools'
 import { newMonster } from './monster'
 import "./roll20"
 
-let isMocked = false
-try {
-    //@ts-ignore
-    isMocked = typeof process.exit === 'function'
-} catch (e) { }
+const isMocked = typeof log !== 'function'
 if (isMocked) {
     //@ts-ignore
     require('mock20')

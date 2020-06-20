@@ -2,14 +2,18 @@ import { Monster, HP, MonsterSize, extractTag, render, attackMap } from './5etoo
 import { generateID, withIndex } from './util'
 import "./roll20"
 
-interface Attack {
+type Attack = {
     name: string
+    description: string
+} & ({
+    isAttack: true
     type: string
     range: string
     toHit: number
     damage: string
-    description: string
-}
+} | {
+    isAttack: false
+})
 
 function floor(num: number): number {
     return num - (num % 1)
@@ -116,11 +120,14 @@ function createAttack(characterId: string, index: number, attack: Attack) {
 
     createAttackAttr('name', attack.name)
     createAttackAttr('description', attack.description)
-    createAttackAttr('attack_flag', 'on')
-    createAttackAttr('attack_type', attackMap[attack.type])
-    createAttackAttr('attack_range', attack.range)
-    createAttackAttr('attack_tohit', attack.toHit)
-    createAttackAttr('attack_damage', attack.damage)
+
+    if (attack.isAttack) {
+        createAttackAttr('attack_flag', 'on')
+        createAttackAttr('attack_type', attackMap[attack.type])
+        createAttackAttr('attack_range', attack.range)
+        createAttackAttr('attack_tohit', attack.toHit)
+        createAttackAttr('attack_damage', attack.damage)
+    }
 }
 
 export function newMonster(m: Monster) {
@@ -145,17 +152,22 @@ export function newMonster(m: Monster) {
 
     for (const [i, action] of withIndex(m.action)) {
         const type = extractTag(action.entries, 'atk')
-        if (type === undefined) {
-            continue
-        }
-        createAttack(c.id, i, {
+        let attack: Attack = {
             name: action.name,
-            type: type,
-            range: '',
-            toHit: Number(extractTag(action.entries, 'hit')),
-            damage: extractTag(action.entries, 'damage') ?? '',
-            description: render(action.entries)
-        })
+            description: render(action.entries),
+            isAttack: false,
+        }
+        if (type !== undefined) {
+            attack = {
+                ...attack,
+                isAttack: true,
+                type: type,
+                range: '',
+                toHit: Number(extractTag(action.entries, 'hit')),
+                damage: extractTag(action.entries, 'damage') ?? '',
+            }
+        }
+        createAttack(c.id, i, attack)
     }
 
 }
