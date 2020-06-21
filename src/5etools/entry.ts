@@ -111,8 +111,13 @@ export function render(entries: Entry[]): string {
 }
 
 export const attackMap: { [key: string]: string | undefined } = {
-    'mw': 'Melee',
-    'mw,rw': 'Melee or Ranged',
+    'm': 'Melee',
+    'mw': 'Melee Weapon',
+    'rw': 'Ranged Weapon',
+    'mw,rw': 'Melee or Ranged Weapon',
+    'ms': 'Melee Spell',
+    'rs': 'Ranged Spell',
+    'ms,rs': 'Melee or Ranged Spell',
 }
 
 const basic = (a: string) => a
@@ -124,12 +129,14 @@ const funcs: { [type: string]: (...args: string[]) => string } = {
         if (name === undefined) {
             throw new Error(`No attack type ${type}`)
         }
-        return name + ' Weapon Attack:'
+        return name + ' Attack:'
     },
+    book: basic,
     chance: basic,
     condition: (a: string, b?: string, c?: string) => a,
     creature: (a: string, b?: string, c?: string) => c ?? a,
     damage: basic,
+    dc: dc => `DC ${dc}`,
     dice: (a: string, b?: string) => b ?? a,
     filter: (a: string, b: string, c: string, d?: string, e?: string) => a,
     h: () => '',
@@ -143,6 +150,7 @@ const funcs: { [type: string]: (...args: string[]) => string } = {
     sense: basic,
     skill: basic,
     spell: basic,
+    table: basic,
 }
 
 function extractTemplates(node: string): string {

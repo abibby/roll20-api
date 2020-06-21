@@ -1,9 +1,21 @@
 import { NamedEntries } from "./entry";
+import rawMonsters from './monster-data.json'
 
-export interface HP {
+export interface MonsterHP {
     average: number
     formula: string
 }
+export type MonsterAC = Array<
+    | { special: string }
+    | {
+        ac: number,
+        from: string[],
+        condition: string,
+        braces: boolean,
+    }
+    | number
+>
+
 
 export interface MonsterType {
     type: string
@@ -18,13 +30,13 @@ export interface Monster {
     page: number
     otherSources: { source: string }[]
     size: MonsterSize
-    type: MonsterType
+    type?: MonsterType
     alignment: [
         'L' | 'N' | 'C',
         'E' | 'N' | 'G'
     ]
-    ac: number[]
-    hp: HP
+    ac?: MonsterAC
+    hp?: MonsterHP
     speed: { [type: string]: number | undefined }
 
     str: number
@@ -39,10 +51,12 @@ export interface Monster {
     languages: string[]
     cr: string
     trait: NamedEntries[]
-    action: NamedEntries[]
+    action?: NamedEntries[]
     environment: string[]
     soundClip: string
     languageTags: string[]
     damageTags: string[]
     miscTags: string[]
 }
+
+export const monsters = rawMonsters as Monster[]

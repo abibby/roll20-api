@@ -1,4 +1,4 @@
-import { Monster, HP, MonsterSize, extractTag, render, attackMap } from './5etools'
+import { Monster, MonsterHP, MonsterSize, extractTag, render, attackMap, MonsterAC } from './5etools'
 import { generateID, withIndex } from './util'
 import "./roll20"
 
@@ -60,11 +60,57 @@ function addAbilityScore(characterId: string, ability: Ability, value: number) {
     createAttr(characterId, attrMap[ability] + '_flag', '0')
 }
 
-function addHP(characterId: string, hp: HP) {
-
+function addHP(characterId: string, hp: MonsterHP) {
     createAttr(characterId, 'hp', hp.average, hp.average)
     createAttr(characterId, 'npc_hpformula', hp.formula, hp.formula)
 }
+
+function splitAC(acList: MonsterAC): [number | undefined, string | undefined] {
+    const ac = acList[0]
+
+    let baseAC: number | undefined
+    if (typeof ac === 'number') {
+        baseAC = ac
+    } else if ('ac' in ac) {
+        baseAC = ac.ac
+    }
+
+    let type: string | undefined
+    if (typeof ac !== 'number') {
+        if ('condition' in ac) {
+            type = ac.condition
+        }
+        if ('from' in ac) {
+            type = ac.from.join(', ')
+        }
+        if ('special' in ac) {
+            type = ac.special
+        }
+    }
+
+    if (type !== undefined) {
+        type = render([type])
+    }
+    if (acList.length > 1) {
+        if (type !== undefined) {
+            type += ', '
+        } else {
+            type = ''
+        }
+        return [baseAC, type + splitAC(acList.slice(1)).join(' ')]
+    }
+    return [baseAC, type]
+}
+
+function addAC(characterId: string, ac: MonsterAC | undefined) {
+    if (ac === undefined) {
+        return
+    }
+    const [baseAC, type] = splitAC(ac)
+    if (baseAC) createAttr(characterId, 'npc_ac', baseAC)
+    if (type) createAttr(characterId, 'npc_ac', type)
+}
+
 
 function speedStr(speed: { [type: string]: number | undefined }) {
     let strs = []
@@ -120,7 +166,6 @@ function createAttack(characterId: string, index: number, attack: Attack) {
 
     createAttackAttr('name', attack.name)
     createAttackAttr('description', attack.description)
-
     if (attack.isAttack) {
         createAttackAttr('attack_flag', 'on')
         createAttackAttr('attack_type', attackMap[attack.type])
@@ -136,7 +181,10 @@ export function newMonster(m: Monster) {
     for (const attr of ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const) {
         addAbilityScore(c.id, attr, m[attr])
     }
-    addHP(c.id, m.hp)
+
+    if (m.hp !== undefined) {
+        addHP(c.id, m.hp)
+    }
 
     createAttr(c.id, 'mancer_cancel', 'on')
     createAttr(c.id, 'npc', 1)
@@ -145,12 +193,12 @@ export function newMonster(m: Monster) {
     createAttr(c.id, 'wtype', '/w gm')
 
     createAttr(c.id, 'npc_name', m.name)
-    createAttr(c.id, 'npc_type', `${sizeStr(m.size)} ${m.type.type}`)
-    createAttr(c.id, 'npc_ac', max(...m.ac))
+    createAttr(c.id, 'npc_type', sizeStr(m.size) + (m.type ? ' ' + m.type.type : ''))
+    addAC(c.id, m.ac)
     createAttr(c.id, 'npc_speed', speedStr(m.speed))
     addSkills(c.id, m.skill)
 
-    for (const [i, action] of withIndex(m.action)) {
+    for (const [i, action] of withIndex(m.action ?? [])) {
         const type = extractTag(action.entries, 'atk')
         let attack: Attack = {
             name: action.name,

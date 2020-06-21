@@ -1,2 +1,3 @@
 node_modules
 dist
+src/5etools/*-data.json

@@ -3,9 +3,12 @@
         "strict": true,
         "target": "ES5",
         "lib": [
-            "ES5"
+            "ES5",
+            "ES2015.Iterable"
         ],
-        "outDir": "dist"
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true
     },
     "files": [
         "src/index.ts"
